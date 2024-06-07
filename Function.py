@@ -1,3 +1,13 @@
+import numpy as np
+import json
+
+with open('letter_frequency.json', 'r') as f:
+    data = json.load(f)
+expected_freq = data['char']
+expected_freq_bi = data['bigram']
+expected_freq_tri = data['trigram']
+
+
 # Simple Substitution Cipher
 def SimpleSubstitutionCipherEncrypt(text, key):
     result = ""
@@ -202,48 +212,64 @@ def PlayfairCipherDecrypt(text, key: str):
 
 
 # 统计单个字符频率
-def count_char_freq(text) -> dict:
+def count_char_freq(text: str) -> dict:
     freq = {}
     for char in text:
-        if char == " ":  # 忽略空格
+        # 如果char不是英文字母
+        if not char.isalpha():
             continue
         if char in freq:
             freq[char] += 1
         else:
             freq[char] = 1
-
+    # 计算频率
+    for key in freq:
+        freq[key] = freq[key] / len(text.replace(' ', '')) * 100
+    # 按照频率降序排列
     freq = dict(sorted(freq.items(), key=lambda x: x[1], reverse=True))
     return freq
 
 
 # 统计双个字符频率
-def count_bigram_freq(text) -> dict:
+def count_bigram_freq(text: str) -> dict:
     freq = {}
+    sum = 0
     for i in range(len(text) - 1):
         bigram = text[i:i + 2]
-        if " " in bigram:  # 忽略空格
+        # 如果bigram含有非英文字母
+        if not bigram[0].isalpha() or not bigram[1].isalpha():
             continue
+        sum = sum + 1
         if bigram in freq:
             freq[bigram] += 1
         else:
             freq[bigram] = 1
-
+    # 计算频率
+    for key in freq:
+        freq[key] = freq[key] / sum * 100
+    # 按照频率降序排列
     freq = dict(sorted(freq.items(), key=lambda x: x[1], reverse=True))
     return freq
 
 
 # 统计三个字符频率
-def count_trigram_freq(text) -> dict:
+def count_trigram_freq(text: str) -> dict:
     freq = {}
+    sum = 0
     for i in range(len(text) - 2):
         trigram = text[i:i + 3]
-        if " " in trigram:  # 忽略空格
+        # 如果trigram含有非英文字母
+        if not trigram[0].isalpha() or not trigram[1].isalpha() or not trigram[2].isalpha():
             continue
+        sum = sum + 1
         if trigram in freq:
             freq[trigram] += 1
         else:
             freq[trigram] = 1
-
+    # 计算频率
+    for key in freq:
+        freq[key] = freq[key] / sum * 100
+    # 按照频率降序排列
     freq = dict(sorted(freq.items(), key=lambda x: x[1], reverse=True))
     return freq
 
@@ -258,6 +284,199 @@ def multiple_substitution(text, sub_dict):
             result += char
     return result
 
+
+# Coincidence index method 重合指数法
+def coincidence_index(freq: dict) -> float:
+    sum = 0
+    for key in freq:
+        sum += (freq[key] / 100) ** 2
+    return sum
+
+
+# Chi-square test 卡方检验
+def chi2_test(freq: dict) -> float:
+    chi2 = 0
+    for key in freq:
+        if key in expected_freq:
+            chi2 += (freq[key] / 100 - expected_freq[key] / 100) ** 2 / (expected_freq[key] / 100)
+    return chi2
+
+
+# 利用 a-e-i 或 r-s-t 的单字符频率峰值找到两个可能的凯撒密码的key
+def find_caesar_key(freq: dict) -> tuple:
+    key = 0
+    key_second = 0
+    max_freq = 0
+    max_second_freq = 0
+    for i in range(26):
+        if chr(i + 65).lower() in freq:
+            if freq[chr(i + 65).lower()] > max_freq:
+                max_second_freq = max_freq
+                max_freq = freq[chr(i + 65).lower()]
+                key_second = key
+                key = i
+            elif freq[chr(i + 65).lower()] > max_second_freq:
+                max_second_freq = freq[chr(i + 65).lower()]
+                key_second = i
+    if (key - 4) % 26 == (key_second - 18) % 26:
+        return ((key - 4) % 26,)
+    else:
+        return (key - 4) % 26, (key_second - 18) % 26
+
+
+# 通过频率分析，从密文中找到出 t\h\e 三个字母
+def find_the(char_freq: dict, bigram_freq: dict, trigram_freq: dict,range_=10) -> dict | None:
+    """
+    如果存在 两个高概率二元组合尾部和头部字母相同
+    且 相连的三元概率也靠前
+    且 高概率二元的另外两个字母的单字符概率较高，
+    则可以认为 这三个是 the
+    :param char_freq:
+    :param bigram_freq:
+    :param trigram_freq:
+    :return: dict{key: str, value: str}
+    """
+    result = {}
+    key_char = list(char_freq.keys())[:min(range_,len(char_freq))]
+    key_bigram = list(bigram_freq.keys())[:min(range_,len(bigram_freq))]
+    key_trigram = list(trigram_freq.keys())[:min(range_,len(trigram_freq))]
+    for i in range(len(key_bigram)):
+        for j in range(len(key_bigram)):
+            if key_bigram[i][1] == key_bigram[j][0] and key_bigram[i][0] in key_char and key_bigram[j][1] in key_char:
+                key = key_bigram[i][0] + key_bigram[i][1] + key_bigram[j][1]
+                if key in key_trigram:
+                    for i in range(3):
+                        result[key[i]] = "the"[i]
+                    return result
+    return None
+
+
+# 计算相对熵
+def relative_entropy(freq: dict, expected_freq: dict) -> float:
+    entropy = 0
+    for key in freq:
+        if key in expected_freq:
+            entropy += freq[key] / 100 * (np.log2(freq[key] / 100) - np.log2(expected_freq[key] / 100))
+    return entropy
+
+
+# 从字典从返回键中含有特定字符的键值对
+def find_key_with_char(sub_dict: dict, char: str, replace_char: str) -> dict:
+    if replace_char is None:
+        replace_char = char
+    result = {}
+    for key in sub_dict:
+        if char in key:
+            result[key.replace(char, replace_char)] = sub_dict[key]
+    return result
+
+
+# 比较两个字符串中的小写字母是否相同
+def compare_char(text: str, text2: str) -> bool:
+    if len(text) == len(text2):
+        for i in range(len(text)):
+            if text[i].islower() and text2[i].islower() and text[i] != text2[i]:
+                return False
+        return True
+    return False
+
+
+# 匹配两个字典中键的小写字母部分相同的键值对
+def match_key_score(sub_dict: dict, sub_dict2: dict) -> float:
+    result1 = {}
+    result2 = {}
+    for key in sub_dict:
+        for key2 in sub_dict2:
+            if compare_char(key, key2) and key2 not in result2.keys():
+                result1[key2] = sub_dict[key]
+                result2[key2] = sub_dict2[key2]
+                break
+    # 把两个字典中的值归一化
+    sum1 = sum(result1.values())
+    sum2 = sum(result2.values())
+    for key in result1:
+        result1[key] = result1[key] / sum1
+        result2[key] = result2[key] / sum2
+
+    return relative_entropy(result1, result2)
+
+
+# 通过频率分析，从密文中找到几个可能的字母
+def find_char(char_freq: dict, bigram_freq: dict, trigram_freq: dict, replaced_dict: dict) -> dict:
+    """
+    通过频率分析，从密文中找到几个可能的字母
+    :param char_freq: 单字符频率
+    :param bigram_freq: 双字符频率
+    :param trigram_freq: 三字符频率
+    :param replaced_dict: 替换过的字符
+    :return: dict{key: str, value: str}
+    """
+    result = {}
+    # 从char_freq中找到第一个没被替换过的字母
+    target_char = ""
+    for key in char_freq.keys():
+        if key not in replaced_dict.values():
+            target_char = key
+            break
+    guess_char = []
+    # 从expected_freq中找到没在replaced_dict中出现过的三个字母
+    for i in range(3):
+        for ch in expected_freq.keys():
+            if ch not in replaced_dict.values() and ch not in guess_char:
+                guess_char.append(ch)
+                break
+    # 通过相对熵找到最可能的字母
+    k_1 = 1
+    k_2 = 1
+    for ch in guess_char:
+        sub_dict = find_key_with_char(bigram_freq, target_char, ch)
+        entropy_bi = match_key_score(sub_dict, expected_freq_bi)
+        sub_dict = find_key_with_char(trigram_freq, target_char, ch)
+        entropy_tri = match_key_score(sub_dict, expected_freq_tri)
+        result[ch] = k_1 * entropy_bi + k_2 * entropy_tri
+    # result 升序排序
+    result = dict(sorted(result.items(), key=lambda x: x[1]))
+    # 返回 result的第一个键
+    return {target_char: list(result.keys())[0]}
+
+# 根据英文的连接特征，进一步分析字母代换可能
+def find_char_by_connect(char_freq: dict, bigram_freq: dict, trigram_freq: dict, replaced: dict) -> dict:
+    """
+    根据英文的连接特征，进一步分析字母代换可能
+    :param char_freq: 单字符频率
+    :param bigram_freq: 双字符频率
+    :param trigram_freq: 三字符频率
+    :param replaced: 替换过的字符
+    :return: dict{key: str, value: dict}
+    """
+    result = {'r':None,'u':None,'x':None}
+
+    if 'e' in replaced.values():
+        r = {}
+        for key in trigram_freq.keys():
+            if key.startswith('e') and key.endswith('e'):
+                r[key[1]] = char_freq[key[1]]
+        r = dict(sorted(r.items(), key=lambda x: x[1], reverse=True))
+        result['r'] = r
+
+    if 'q' in replaced.values():
+        u = {}
+        for key in bigram_freq.keys():
+            if key.startswith('q'):
+                u[key[1]] = char_freq[key[1]]
+        u = dict(sorted(u.items(), key=lambda x: x[1], reverse=True))
+        result['u'] = u
+
+    if 'x' in replaced.values():
+        x = {}
+        for key in bigram_freq.keys():
+            if key.endswith('x'):
+                x[key[1]] = char_freq[key[1]]
+        x = dict(sorted(x.items(), key=lambda x: x[1], reverse=True))
+        result['x'] = x
+
+    # 返回 result的第一个键
+    return result
 
 if __name__ == "__main__":
     test = "Congratulations, your example passed the test!"

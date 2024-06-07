@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 def percentage_to_float(percentage):
     return float(percentage.strip('%'))
 
+
 def get_letter_frequency():
     url = 'https://en.wikipedia.org/wiki/Letter_frequency'
     response = requests.get(url)
@@ -30,7 +31,6 @@ def get_letter_frequency():
     return result
 
 
-
 # 爬取bigram数据，即双字符出现频率
 def get_bigram_frequency():
     url = 'https://en.wikipedia.org/wiki/Bigram'
@@ -48,6 +48,7 @@ def get_bigram_frequency():
     # result 降序排列
     result = dict(sorted(result.items(), key=lambda x: x[1], reverse=True))
     return result
+
 
 # 爬取trigram数据，即三字符出现频率
 def get_trigram_frequency():
@@ -73,7 +74,6 @@ def get_trigram_frequency():
     return result
 
 
-
 if __name__ == '__main__':
     result = get_letter_frequency()
     results = {'char': result}
@@ -93,6 +93,3 @@ if __name__ == '__main__':
     print(f'char: {data["char"]}')
     print(f'bigram: {data["bigram"]}')
     print(f"trigram: {data['trigram']}")
-
-
-
