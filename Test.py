@@ -36,12 +36,10 @@ if __name__ == '__main__':
     output_str = Process.AffineCipherEncrypt(key)
     print("仿射密码加密：", output_str)
 
-
     # 代换U->g H->t
-    replaced_dict = {'U': 'g', 'H': 't','A':'i'}
+    replaced_dict = {'U': 'g', 'H': 't', 'A': 'i'}
     output_str = Process.MultipleSubstitution(replaced_dict)
     print("多表代换：", output_str)
-
 
     # 回滚
     output_str = Process.RollBack()
@@ -58,7 +56,3 @@ if __name__ == '__main__':
     # 仿射密码解密
     output_str = Process.AffineCipherDecrypt(key)
     print("仿射密码解密：", output_str)
-
-
-
-

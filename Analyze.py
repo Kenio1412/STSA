@@ -1,7 +1,7 @@
 from Function import *
 
 
-class Analyze():
+class Analyze:
     def __init__(self, input_str: str):
         self.input_str = input_str
         self.process_str = input_str
@@ -57,11 +57,12 @@ class Analyze():
     def findCharByConnect(self, replaced: dict) -> dict:
         if self.frequency is None:
             self.FrequencyAnalysis()
-        result = find_char_by_connect(self.frequency['char'], self.frequency['bigram'], self.frequency['trigram'], replaced)
+        result = find_char_by_connect(self.frequency['char'], self.frequency['bigram'], self.frequency['trigram'],
+                                      replaced)
         return result
 
     # 分析input_str
-    def Analysis(self,replaced: dict) -> dict:
+    def Analysis(self, replaced: dict) -> dict:
         result = {}
         result['frequency'] = self.FrequencyAnalysis()
         result['findThe'] = self.findThe()
@@ -70,7 +71,6 @@ class Analyze():
         result['caesar_key'] = self.findCaesarKey()
         result['is_monoalphabetic'] = self.isMonoalphabetic()
         result['is_monoalphabetic_chi2'] = self.isMonoalphabetic_chi2()
-
 
         return result
 

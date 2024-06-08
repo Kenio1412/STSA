@@ -55,10 +55,11 @@ def invert(a, n):
 
 # 仿射密码加密
 def AffineCipherEncrypt(text, key):
-    # try:
-    #     assert key[0] in [3, 5, 7, 9, 11, 15, 17, 19, 21, 23, 25] #解的唯一性
-    # except:
-    #     return "error!"
+    key_inv = invert(key[0], 26)  # 求逆元
+
+    if key_inv is None:
+        raise ValueError("The key is not invertible.")
+
     result = ""
     for i in range(len(text)):
         char = text[i]
@@ -140,10 +141,16 @@ def get_in_table(idx: tuple, table: str):
 
 # Playfair密码加密
 def PlayfairCipherEncrypt(text, key: str):
+    # 清除无关字符
+    text_copy = text
+    for ch in set(list(text_copy)):
+        if not ch.isalpha():
+            text = text.replace(ch, '')
+    key = key.replace('J', 'I').replace(' ', '').replace('\n', '').upper()
     table = construct_playfair_table(key)
     text = text.replace('J', 'I').replace(' ', '').replace('\n', '').upper()
     if not is_alpha(text):
-        raise ValueError("The text must be alphabetic.")
+        raise ValueError("The text must be fully alphabetic.")
 
     # 在重复字母间插入X
     i = 0
@@ -182,10 +189,12 @@ def PlayfairCipherEncrypt(text, key: str):
 
 # Playfair密码解密
 def PlayfairCipherDecrypt(text, key: str):
+    key = key.replace('J', 'I').replace(' ', '').replace('\n', '').upper()
+
     table = construct_playfair_table(key)
     text = text.replace('J', 'I').replace(' ', '').replace('\n', '').upper()
     if not is_alpha(text):
-        raise ValueError("The text must be alphabetic.")
+        raise ValueError("The text must be fully alphabetic.")
 
     # 根据table进行解密
     result = ""
@@ -222,9 +231,10 @@ def count_char_freq(text: str) -> dict:
             freq[char] += 1
         else:
             freq[char] = 1
-    # 计算频率
+    # 计算频率,结果保留两位小数
     for key in freq:
         freq[key] = freq[key] / len(text.replace(' ', '')) * 100
+        freq[key] = round(freq[key], 2)
     # 按照频率降序排列
     freq = dict(sorted(freq.items(), key=lambda x: x[1], reverse=True))
     return freq
@@ -247,8 +257,9 @@ def count_bigram_freq(text: str) -> dict:
     # 计算频率
     for key in freq:
         freq[key] = freq[key] / sum * 100
+        freq[key] = round(freq[key], 2)
     # 按照频率降序排列
-    freq = dict(sorted(freq.items(), key=lambda x: x[1], reverse=True))
+    freq = dict(sorted(freq.items(), key=lambda x: x[1], reverse=True)[:min(10,len(freq))])
     return freq
 
 
@@ -269,8 +280,9 @@ def count_trigram_freq(text: str) -> dict:
     # 计算频率
     for key in freq:
         freq[key] = freq[key] / sum * 100
+        freq[key] = round(freq[key], 2)
     # 按照频率降序排列
-    freq = dict(sorted(freq.items(), key=lambda x: x[1], reverse=True))
+    freq = dict(sorted(freq.items(), key=lambda x: x[1], reverse=True)[:min(10,len(freq))])
     return freq
 
 

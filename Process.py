@@ -119,7 +119,7 @@ class Process:
         if self.step > 0:
             self.step -= 1
             self.output_str = self.intermediate[self.step]
-            self.replaced = self.intermediate_replace[self.step]
+            self.replaced = self.intermediate_replace[self.step] if self.step in self.intermediate_replace else {}
         return self.output_str
 
     # 操作前进
