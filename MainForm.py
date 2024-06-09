@@ -1,9 +1,8 @@
-from PySide6.QtWidgets import QApplication, QDialog, QTableWidgetItem
-from PySide6.QtCore import Signal, Slot
-import sys
+from PySide6.QtWidgets import QDialog
+from PySide6.QtCore import Signal
 
-from ui_windows import Ui_STAT
-from ui_sub_windows import Ui_Form
+from GUI.ui_windows import Ui_STAT
+from GUI.ui_sub_windows import Ui_Form
 from Process import Process
 from Function import data
 
@@ -25,6 +24,7 @@ class MainWindow(QDialog, Ui_STAT):
         self.isMonoalphabetic.clicked.connect(self.isMonoalphabetic_clicked)
         self.FindThe.clicked.connect(self.FindThe_clicked)
         self.FineChar.clicked.connect(self.FineChar_clicked)
+        self.Connect.clicked.connect(self.connect_clicked)
         self.LOAD.clicked.connect(self.LOAD_clicked)
         self.RollBack.clicked.connect(self.RollBack_clicked)
         self.Forward.clicked.connect(self.Forward_clicked)
@@ -131,7 +131,7 @@ class MainWindow(QDialog, Ui_STAT):
                                    f"二元频率：{result['frequency']['bigram']}\n"
                                    f"三元频率：{result['frequency']['trigram']}\n"
                                    )
-        self.History_text.append(f"Step {self.process.step}: Frequency Analysis")
+        self.History_text.append(f"Frequency Analysis")
         self.SubWindow.close()
 
     def isMonoalphabetic_clicked(self):
@@ -145,7 +145,7 @@ class MainWindow(QDialog, Ui_STAT):
         result = self.process.getAnalysis()
         self.Analysis_text.setText(f"是否是单表代换：{result['is_monoalphabetic']}\n")
         self.Analysis_text.append(f"是否是单表代换（卡方检验）：{result['is_monoalphabetic_chi2']}")
-        self.History_text.append(f"Step {self.process.step}: Is Monoalphabetic")
+        self.History_text.append(f"Is Monoalphabetic")
         self.SubWindow.close()
 
     def FindThe_clicked(self):
@@ -158,8 +158,16 @@ class MainWindow(QDialog, Ui_STAT):
         if self.process is None:
             self.LOAD_clicked()
         result = self.process.getAnalysis()
-        self.Analysis_text.setText(f"findChar: {result['findThe']}")
-        self.History_text.append(f"Step {self.process.step}: Find The")
+        self.Analysis_text.setText(f"findThe: {result['findThe']}")
+        self.History_text.append(f"Find The")
+        self.SubWindow.close()
+
+    def connect_clicked(self):
+        if self.process is None:
+            self.LOAD_clicked()
+        result = self.process.getAnalysis()
+        self.Analysis_text.setText(f"findCharByConnect: {result['findCharByConnect']}")
+        self.History_text.append(f"Find Char By Connect")
         self.SubWindow.close()
 
     def FineChar_clicked(self):
@@ -172,7 +180,7 @@ class MainWindow(QDialog, Ui_STAT):
             self.LOAD_clicked()
         result = self.process.getAnalysis()
         self.Analysis_text.setText(f"findChar: {result['findChar']}")
-        self.History_text.append(f"Step {self.process.step}: Find Char")
+        self.History_text.append(f"Find Char")
         self.SubWindow.close()
 
     def CaesarKey_click(self):
@@ -180,7 +188,7 @@ class MainWindow(QDialog, Ui_STAT):
             self.LOAD_clicked()
         result = self.process.getAnalysis()
         self.Analysis_text.setText(f"凯撒密码key：{result['caesar_key']}")
-        self.History_text.append(f"Step {self.process.step}: Find Caesar Key")
+        self.History_text.append(f"Find Caesar Key")
         self.SubWindow.close()
 
     def RollBack_clicked(self):
@@ -192,7 +200,8 @@ class MainWindow(QDialog, Ui_STAT):
             self.LOAD_clicked()
         result = self.process.RollBack()
         self.Output_text.setText(result)
-        self.Input_text.setText(self.process.intermediate[self.process.step - 1] if self.process.step > 0 else self.process.intermediate[0])
+        self.Input_text.setText(
+            self.process.intermediate[self.process.step - 1] if self.process.step > 0 else self.process.intermediate[0])
         self.History_text.append(f"Roll Back to Step {self.process.step}")
         self.SubWindow.close()
 
@@ -212,6 +221,8 @@ class MainWindow(QDialog, Ui_STAT):
     def Tips_clicked(self):
         self.send_name.emit("Tips")
         self.SubWindow.show()
+
+
 class SubWindow(QDialog, Ui_Form):
     send_caesar_key = Signal(int, int, bool)
     send_affine_key = Signal(int, int, bool)
@@ -238,7 +249,7 @@ class SubWindow(QDialog, Ui_Form):
     def initialize(self, name):
         self.name = name
         if name == "Tips":
-            self.Tips_text.setText("Tips")
+            self.setWindowTitle("Tips")
         else:
             self.setWindowTitle(self.name + " Cipher")
         self.Tips_text.hide()

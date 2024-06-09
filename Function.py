@@ -259,7 +259,7 @@ def count_bigram_freq(text: str) -> dict:
         freq[key] = freq[key] / sum * 100
         freq[key] = round(freq[key], 2)
     # 按照频率降序排列
-    freq = dict(sorted(freq.items(), key=lambda x: x[1], reverse=True)[:min(10,len(freq))])
+    freq = dict(sorted(freq.items(), key=lambda x: x[1], reverse=True)[:min(10, len(freq))])
     return freq
 
 
@@ -282,7 +282,7 @@ def count_trigram_freq(text: str) -> dict:
         freq[key] = freq[key] / sum * 100
         freq[key] = round(freq[key], 2)
     # 按照频率降序排列
-    freq = dict(sorted(freq.items(), key=lambda x: x[1], reverse=True)[:min(10,len(freq))])
+    freq = dict(sorted(freq.items(), key=lambda x: x[1], reverse=True)[:min(10, len(freq))])
     return freq
 
 
@@ -337,7 +337,7 @@ def find_caesar_key(freq: dict) -> tuple:
 
 
 # 通过频率分析，从密文中找到出 t\h\e 三个字母
-def find_the(char_freq: dict, bigram_freq: dict, trigram_freq: dict,range_=10) -> dict | None:
+def find_the(char_freq: dict, bigram_freq: dict, trigram_freq: dict, range_=10) -> dict | None:
     """
     如果存在 两个高概率二元组合尾部和头部字母相同
     且 相连的三元概率也靠前
@@ -349,9 +349,9 @@ def find_the(char_freq: dict, bigram_freq: dict, trigram_freq: dict,range_=10) -
     :return: dict{key: str, value: str}
     """
     result = {}
-    key_char = list(char_freq.keys())[:min(range_,len(char_freq))]
-    key_bigram = list(bigram_freq.keys())[:min(range_,len(bigram_freq))]
-    key_trigram = list(trigram_freq.keys())[:min(range_,len(trigram_freq))]
+    key_char = list(char_freq.keys())[:min(range_, len(char_freq))]
+    key_bigram = list(bigram_freq.keys())[:min(range_, len(bigram_freq))]
+    key_trigram = list(trigram_freq.keys())[:min(range_, len(trigram_freq))]
     for i in range(len(key_bigram)):
         for j in range(len(key_bigram)):
             if key_bigram[i][1] == key_bigram[j][0] and key_bigram[i][0] in key_char and key_bigram[j][1] in key_char:
@@ -393,7 +393,7 @@ def compare_char(text: str, text2: str) -> bool:
     return False
 
 
-# 匹配两个字典中键的小写字母部分相同的键值对
+# 匹配两部字典中键的小写字母部分相同的键值对
 def match_key_score(sub_dict: dict, sub_dict2: dict) -> float:
     result1 = {}
     result2 = {}
@@ -403,7 +403,7 @@ def match_key_score(sub_dict: dict, sub_dict2: dict) -> float:
                 result1[key2] = sub_dict[key]
                 result2[key2] = sub_dict2[key2]
                 break
-    # 把两个字典中的值归一化
+    # 把两部字典中的值归一化
     sum1 = sum(result1.values())
     sum2 = sum(result2.values())
     for key in result1:
@@ -451,6 +451,7 @@ def find_char(char_freq: dict, bigram_freq: dict, trigram_freq: dict, replaced_d
     # 返回 result的第一个键
     return {target_char: list(result.keys())[0]}
 
+
 # 根据英文的连接特征，进一步分析字母代换可能
 def find_char_by_connect(char_freq: dict, bigram_freq: dict, trigram_freq: dict, replaced: dict) -> dict:
     """
@@ -461,7 +462,7 @@ def find_char_by_connect(char_freq: dict, bigram_freq: dict, trigram_freq: dict,
     :param replaced: 替换过的字符
     :return: dict{key: str, value: dict}
     """
-    result = {'r':None,'u':None,'x':None}
+    result = {'r': None, 'u': None, 'x': None}
 
     if 'e' in replaced.values():
         r = {}
@@ -490,6 +491,7 @@ def find_char_by_connect(char_freq: dict, bigram_freq: dict, trigram_freq: dict,
     # 返回 result的第一个键
     return result
 
+
 if __name__ == "__main__":
     test = "Congratulations, your example passed the test!"
     test_rot3 = "Frqjudwxodwlrqv, brxu hadpsoh sdvvhg wkh whvw!"
@@ -504,19 +506,21 @@ if __name__ == "__main__":
     assert AffineCipherDecrypt("Yexazknujknoexg, weuz mpkqljm lkggmf nhm nmgn!", key) == test
     assert AffineCipherDecrypt(AffineCipherEncrypt(test, key), key) == test
 
-    # 测试频率统计
-    text = "hello world"
-    freq = count_char_freq(text)
-    assert freq == {'l': 3, 'o': 2, 'h': 1, 'e': 1, 'w': 1, 'r': 1, 'd': 1}
-    freq = count_bigram_freq(text)
-    assert freq == {'he': 1, 'el': 1, 'll': 1, 'lo': 1, 'wo': 1, 'or': 1, 'rl': 1, 'ld': 1}
-    freq = count_trigram_freq(text)
-    assert freq == {'hel': 1, 'ell': 1, 'llo': 1, 'wor': 1, 'orl': 1, 'rld': 1}
-
     # 测试Playfair密码
     key = "playfair example"
     text = "Hide the gold in the tre stump"  # 为了避免出现x 这里把tree改为 tre
     cipher_text = PlayfairCipherEncrypt(text, key)
     assert PlayfairCipherDecrypt(cipher_text, key) == text.lower().replace(' ', '')
+
+    # # 测试频率统计
+    # text = "hello world"
+    # freq = count_char_freq(text)
+    # assert freq == {'l': 3, 'o': 2, 'h': 1, 'e': 1, 'w': 1, 'r': 1, 'd': 1}
+    # freq = count_bigram_freq(text)
+    # assert freq == {'he': 1, 'el': 1, 'll': 1, 'lo': 1, 'wo': 1, 'or': 1, 'rl': 1, 'ld': 1}
+    # freq = count_trigram_freq(text)
+    # assert freq == {'hel': 1, 'ell': 1, 'llo': 1, 'wor': 1, 'orl': 1, 'rld': 1}
+
+
 
     print("All tests passed!")

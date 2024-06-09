@@ -1,10 +1,7 @@
-from PySide6.QtWidgets import QApplication, QDialog, QTableWidgetItem
-from PySide6.QtCore import Signal, Slot
+from PySide6.QtWidgets import QApplication
 import sys
 
 from MainForm import MainWindow
-import ui_windows
-
 
 if __name__ == "__main__":
     app = QApplication([])

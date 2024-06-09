@@ -18,7 +18,7 @@ class Analyze:
         return result
 
     # 利用卡方检验判断密文是否为单表代换密码
-    def isMonoalphabetic_chi2(self, epsilon=0.05) -> bool:
+    def isMonoalphabetic_chi2(self, epsilon=0.005) -> bool:
         if self.frequency is None:
             self.FrequencyAnalysis()
         result = chi2_test(self.frequency['char'])
